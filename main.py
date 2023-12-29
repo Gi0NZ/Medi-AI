@@ -15,8 +15,8 @@ from sklearn.metrics import precision_score, classification_report
 translator = Translator()
 
 #Carico i dataset di training e testing
-training_set = pd.read_csv('Datasets/Training.csv')
-testing_set = pd.read_csv('Datasets/Testing.csv')
+training_set = pd.read_csv('Data/Training.csv')
+testing_set = pd.read_csv('Data/Testing.csv')
 
 #prendo le colonne del training set
 columns = training_set.columns
@@ -47,5 +47,34 @@ y_pred = classifier.predict(x_test)
 print(classification_report(y_test, y_pred))
 
 print(classifier.score(x_test, y_test))
+
+#Calcoliamo le varie importanze delle feature nel modello Decision Tree
+importances = classifier.feature_importances_
+indices = np.argsort(importances)[::-1]
+features = columns
+
+#Instanziamo i dizionari
+severityDictionary = dict()
+desrciptionDictionary = dict()
+precautionDictionary = dict()
+
+symtompsDict = {}
+
+#Associamo ai nomu dei sintomi gli indici corrispondenti
+for index, symptom in enumerate(x_train):
+    symtompsDict[symptom] = index
+
+#Otteniamo le descrizioni dei sintomi dal file symptom_Description.csv e popoliamo la variabile globale desrciptionList
+def getDescription():
+    global desrciptionList
+    with open('MasterData/symptom_Description.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter= ',')
+        try:
+            for row in csv_reader:
+                _description = {row[0]: row[1]}
+                desrciptionList.update(_description)
+        except Exception as e:
+            logging.error("Si è verificato un errore imprevisto.")
+
 
 
