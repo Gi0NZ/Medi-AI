@@ -111,9 +111,8 @@ def check_pattern(dis_list, inp):
     patt = f"{inp}"
     regexp = re.compile(patt)
     pred_list = [item for item in dis_list if regexp.search(item)]
-
-if(len(pred_list) > 0):
-    return 1, pred_list
-else:
-    return 0, []
+    if len(pred_list) > 0:
+        return 1, pred_list
+    else:
+        return 0, []
 
