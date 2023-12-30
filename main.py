@@ -77,4 +77,5 @@ def getDescription():
             logging.error("Si è verificato un errore imprevisto.")
 
 
+def getSeverity():
 
