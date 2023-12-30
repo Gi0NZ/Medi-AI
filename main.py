@@ -60,7 +60,7 @@ precautionDictionary = dict()
 
 symtompsDict = {}
 
-#Associamo ai nomu dei sintomi gli indici corrispondenti
+#Associamo ai nomi dei sintomi gli indici corrispondenti
 for index, symptom in enumerate(x_train):
     symtompsDict[symptom] = index
 
@@ -77,5 +77,27 @@ def getDescription():
             logging.error("Si è verificato un errore imprevisto.")
 
 
-def getSeverity():
+#def getSeverity():
 
+"""
+Ottengo le informazioni riguardo le precauzioni da prendere per le malattie trovate dal file symptom_precaution.csv e popolo
+la variabile globale (!!!è un dizionario!!!) precautionDictionary
+"""
+def getprecautionDict():
+    global precautionDictionary
+    with open('MasterData/symptom_precaution.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        try:
+            for row in csv_reader:
+                #Uso la funzione _prec per popolare la var. globale; estraggo il nome del sintomo (row[0]) e le 4 prec. consigliate (row[1],row[2],row[3],row[4])
+                _prec = {row[0]: [row[1], row[2], row[3], row[4]]}
+                precautionDictionary.update(_prec)
+        except Exception as e:
+            logging.error("Si è verificato un errore imprevisto.")
+
+#Ottengo le informazioni del pazione
+
+def getInfo():
+    print("\nCiao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?\t")
+    name = input("")
+    print("Ciao, "+ name +".")
