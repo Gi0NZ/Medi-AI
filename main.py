@@ -64,7 +64,6 @@ symtompsDict = {}
 for index, symptom in enumerate(x_train):
     symtompsDict[symptom] = index
 
-
 # Otteniamo le descrizioni dei sintomi dal file symptom_Description.csv e popoliamo la variabile globale desrciptionList
 def getDescription():
     global desrciptionList
@@ -85,7 +84,6 @@ Ottengo le informazioni riguardo le precauzioni da prendere per le malattie trov
 la variabile globale (!!!è un dizionario!!!) precautionDictionary
 """
 
-
 def getprecautionDict():
     global precautionDictionary
     with open('MasterData/symptom_precaution.csv') as csv_file:
@@ -98,10 +96,24 @@ def getprecautionDict():
         except Exception as e:
             logging.error("Si è verificato un errore imprevisto.")
 
-
 # Ottengo le informazioni del pazione
 
 def getInfo():
     print("\nCiao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?\t")
     name = input("")
     print("Ciao, " + name + ".")
+
+# Cerco un sintomo specifico all'interno di una lista di nomi di sintomi 
+
+def check_pattern(dis_list, inp):
+    pred_list = []
+    inp = inp.replace(' ', '_')
+    patt = f"{inp}"
+    regexp = re.compile(patt)
+    pred_list = [item for item in dis_list if regexp.search(item)]
+
+if(len(pred_list) > 0):
+    return 1, pred_list
+else:
+    return 0, []
+
