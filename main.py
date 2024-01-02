@@ -116,3 +116,24 @@ def check_pattern(dis_list, inp):
     else:
         return 0, []
 
+#Effetuo una seconda previsione basata sui sintomi specifici forniti come input
+def sec_predict(symptoms_exp):
+    df = pd.read_csv('Data/Training.csv')
+    X = df.iloc[:,:-1]
+    y = df['prognosis']
+
+    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.3, random_state=20)
+    rf_clf = DecisionTreeClassifier()
+    rf_clf.fit(X_train,y_train)
+
+    symtompsDict = {symptom: index for index, symptom in enumerate(X.columns)}
+
+    input_vector = np.zeros(len(symtompsDict))
+
+    for item in symptoms_exp:
+        if item in symtompsDict:
+            input_vector[[symtompsDict[item]]] = 1
+        else:
+            print("Sintomo non trovato nel dataset")
+
+    return rf_clf.predict([input_vector])
