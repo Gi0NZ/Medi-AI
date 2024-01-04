@@ -65,6 +65,8 @@ for index, symptom in enumerate(x_train):
     symtompsDict[symptom] = index
 
 # Otteniamo le descrizioni dei sintomi dal file symptom_Description.csv e popoliamo la variabile globale desrciptionList
+
+
 def getDescription():
     global desrciptionList
     with open('MasterData/symptom_Description.csv') as csv_file:
@@ -84,6 +86,7 @@ Ottengo le informazioni riguardo le precauzioni da prendere per le malattie trov
 la variabile globale (!!!è un dizionario!!!) precautionDictionary
 """
 
+
 def getprecautionDict():
     global precautionDictionary
     with open('MasterData/symptom_precaution.csv') as csv_file:
@@ -98,12 +101,14 @@ def getprecautionDict():
 
 # Ottengo le informazioni del pazione
 
+
 def getInfo():
     print("\nCiao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?\t")
     name = input("")
     print("Ciao, " + name + ".")
 
 # Cerco un sintomo specifico all'interno di una lista di nomi di sintomi 
+
 
 def check_pattern(dis_list, inp):
     pred_list = []
@@ -116,7 +121,9 @@ def check_pattern(dis_list, inp):
     else:
         return 0, []
 
+
 #Effetuo una seconda previsione basata sui sintomi specifici forniti come input
+
 def sec_predict(symptoms_exp):
     df = pd.read_csv('Data/Training.csv')
     X = df.iloc[:,:-1]
@@ -137,3 +144,37 @@ def sec_predict(symptoms_exp):
             print("Sintomo non trovato nel dataset")
 
     return rf_clf.predict([input_vector])
+
+
+def calc_condition(exp, days):
+    severity_sum = 0
+    for item in exp:
+        if item in severityDictionary:
+            severity_sum += severityDictionary[item]
+    if (severity_sum * days) / (len(exp) + 1) > 8:
+        print("Ti consiglio di andare da un medico e prendere delle precauzioni.")
+    else:
+        print("Ti consiglio di sederti e rilassarti: non è necessaria una visita medica.")
+
+
+def getSeverityDict():
+    global severityDictionary
+    with open('MasterData/Symptom_severity.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        try:
+            for row in csv_reader:
+                if len(row) >= 2:
+                    _diction = {row[0]: int(row[1])}
+                    severityDictionary.update(_diction)
+                else:
+                    logging.warning(f"Ignorato: {row} - La riga non contiene abbastanza elementi.")
+        except Exception as e:
+            logging.error(f"Si è verificato un errore imprevisto: {str(e)}")
+
+
+def print_disease(node):
+    node = node[0]
+    val = node.nonzero()
+    disease = le.inverse_transform(val[0])
+    return list(map(lambda x: x.strip, list(disease)))
+
