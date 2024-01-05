@@ -26,20 +26,18 @@ columns = columns[:-1]
 
 
 # estraggo features e creo la variabile dipendente
-x_train = training_set[columns]
-y_train = training_set['prognosis']
+x = training_set[columns]
+y = training_set['prognosis']
 
 
 # Poiché necessitiamo di valori numerici, mappiamo le stringhe in numeri con un encoder
 le = preprocessing.LabelEncoder()
-le.fit(y_train)
-y_train = le.transform(y_train)
+le.fit(y)           #funziona anche senza encoding, valutare se inserirlo
+y = le.transform(y)
 
 
 # poiché ho i due set di training e testing, non vado a dividere, ma sfrutto i due dataset
-x_test = testing_set[columns]
-y_test = testing_set['prognosis']
-y_test = le.transform(y_test)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=42)
 
 
 # Creiamo ora il classificatore: per la natura del problema utilizziamo un classificatore DecisionTree
@@ -51,6 +49,20 @@ y_pred = classifier.predict(x_test)
 print(classification_report(y_test, y_pred))
 
 print(classifier.score(x_test, y_test))
+
+
+reduced_data = training_set.groupby(training_set['prognosis']).max()
+
+#convalida incrociata
+scores = cross_val_score(classifier, x_test, y_test, cv=5) # se usiamo training e testing set forniti (separati) non possiamo effettuare la cross validation
+print("Cross Validation: " + str(scores.mean()))
+
+
+#modello Support Vector Machine
+model = SVC()
+model.fit(x_train, y_train)
+print("Prestazioni SCV: ")
+print(model.score(x_test, y_test))
 
 
 # Calcoliamo le varie importanze delle feature nel modello Decision Tree
@@ -72,13 +84,13 @@ for index, symptom in enumerate(x_train):
 
 # Otteniamo le descrizioni dei sintomi dal file symptom_Description.csv e popoliamo la variabile globale desrciptionList
 def getDescription():
-    global desrciptionList
+    global description_list
     with open('MasterData/symptom_Description.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         try:
             for row in csv_reader:
                 _description = {row[0]: row[1]}
-                desrciptionList.update(_description)
+                description_list.update(_description)
         except Exception as e:
             logging.error("Si è verificato un errore imprevisto.")
 
@@ -89,6 +101,8 @@ def getDescription():
 Ottengo le informazioni riguardo le precauzioni da prendere per le malattie trovate dal file symptom_precaution.csv e popolo
 la variabile globale (!!!è un dizionario!!!) precautionDictionary
 """
+
+
 def getprecautionDict():
     global precautionDictionary
     with open('MasterData/symptom_precaution.csv') as csv_file:
@@ -199,8 +213,8 @@ def tree_to_code(tree, feature_names):
         if conf == 1:
             print("Ho trovato i seguenti sintomi in base alla tua risposta: ")
             for num, it in enumerate(cnf_dis):
-                print(num, ")", translator.translate(it.repalce("_"," "),dest="it").text)
-            if num!=0:
+                print(num, ")", translator.translate(it.repalce("_", " "), dest="it").text)
+            if num != 0:
                 print(f"Che sintomo in particolare? (0 -{num}): ", end="")
                 conf_inp = int(input(""))
             else:
@@ -216,5 +230,55 @@ def tree_to_code(tree, feature_names):
             break
         except:
             print("Inserisci un input valido.")
+    def diagnose(node, depth):
+        if tree_.feature[node] != _tree.TREE_UNDEFINED:
+            name, threshold = feature_name[node], tree_.threshold[node]
+            val = 1 if name == disease_input else 0
+
+            next_node = tree_.children_left[node] if val <= threshold else tree_.children_right[node]
+            diagnose(next_node, depth + 1)
+        else:
+            present_disease = print_disease(tree_.value[node])
+            symtomps_given = reduced_data.columns[reduced_data.loc[present_disease].values[0].nonzero()]
+            print("Stai sperimentando qualche sintomo tra questi?")
+            symptoms_exp = []
+            for sym in list(symtomps_given):
+                if sym != disease_input:
+                    print(translator.translate(sym.replace("_", " "), dest="it").text+"?", end=" ")
+                    while True:
+                        inp = input("")
+                        if inp == "si" or inp == "no":
+                            break
+                        else:
+                            print("Dai una risposta valida, i.e. (si/no): ", end="")
+                        if inp == "si":
+                            sym.replace(" ", "_")
+                            symptoms_exp.append(sym)
+
+            second_prediction = sec_predict(symptoms_exp)
+
+            disease = translator.translate(present_disease[0], dest="it").text
+            diagnosis_text = f"\nIn base alle mie ricerche potresti avere {disease}"
+
+            if present_disease[0] != second_prediction[0]:
+                second_prediction[0] = translator.translate(second_prediction[0], dest="it").text
+                diagnosis_text += f" o {second_prediction[0]}"
+            print(translator.translate(diagnosis_text, dest="it").text)
+
+            print(translator.translate(description_list[present_disease[0]], dest="it").text)
+            if present_disease[0] != second_prediction[0]:
+                print(translator.translate(description_list[second_prediction[0]], dest="it").text)
+
+            print("Prendi le seguenti precauzioni:")
+            for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
+                precaution = translator.translate(precaution, dest="it").text
+                print(f"{i}) {precaution}")
+    diagnose(0, 1)
 
 
+if __name__ == '__main__':
+    getSeverityDict()
+    getDescription()
+    getprecautionDict()
+    getInfo()
+    tree_to_code(classifier, columns)
