@@ -95,6 +95,7 @@ def getDescription():
             logging.error("Si è verificato un errore imprevisto.")
 
 
+# def getSeverity():
 
 """
 Ottengo le informazioni riguardo le precauzioni da prendere per le malattie trovate dal file symptom_precaution.csv e popolo
@@ -189,7 +190,7 @@ def print_disease(node):
     node = node[0]
     val = node.nonzero()
     disease = le.inverse_transform(val[0])
-    return list(map(lambda x: x.strip(), list(disease)))
+    return list(map(lambda x: x.strip, list(disease)))
 
 
 #Funzione core del progetto
@@ -212,7 +213,7 @@ def tree_to_code(tree, feature_names):
         if conf == 1:
             print("Ho trovato i seguenti sintomi in base alla tua risposta: ")
             for num, it in enumerate(cnf_dis):
-                print(num, ")", translator.translate(it.replace("_", " "), dest="it").text)
+                print(num, ")", translator.translate(it.repalce("_", " "), dest="it").text)
             if num != 0:
                 print(f"Che sintomo in particolare? (0 -{num}): ", end="")
                 conf_inp = int(input(""))
@@ -264,12 +265,18 @@ def tree_to_code(tree, feature_names):
                 diagnosis_text += f" o {second_prediction[0]}"
             print(translator.translate(diagnosis_text, dest="it").text)
 
-            print(translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
-            if present_disease[0] != second_prediction[0]:
-                print(translator.translate(descriptionDictionary[second_prediction[0]], dest="it").text)
-
+            print("\n"+translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
             print("Prendi le seguenti precauzioni:")
             for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
+                precaution = translator.translate(precaution, dest="it").text
+                print(f"{i}) {precaution}")
+
+            if present_disease[0] != second_prediction[0]:
+                prediction = translator.translate(second_prediction[0], src="it").text
+                print("\n"+translator.translate(descriptionDictionary[prediction], dest="it").text)
+
+            print("Prendi le seguenti precauzioni:")
+            for i, precaution in enumerate(precautionDictionary[translator.translate(second_prediction[0], src="it").text], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
     diagnose(0, 1)
