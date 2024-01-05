@@ -14,9 +14,12 @@ from sklearn.metrics import precision_score, classification_report
 
 translator = Translator()
 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+
+
 # Carico i dataset di training e testing
 training_set = pd.read_csv('Data/Training.csv')
-testing_set = pd.read_csv('Data/Testing.csv')
 
 
 # prendo le colonne del training set
@@ -190,7 +193,7 @@ def print_disease(node):
     node = node[0]
     val = node.nonzero()
     disease = le.inverse_transform(val[0])
-    return list(map(lambda x: x.strip, list(disease)))
+    return list(map(lambda x: x.strip(), list(disease)))
 
 
 #Funzione core del progetto
@@ -213,7 +216,7 @@ def tree_to_code(tree, feature_names):
         if conf == 1:
             print("Ho trovato i seguenti sintomi in base alla tua risposta: ")
             for num, it in enumerate(cnf_dis):
-                print(num, ")", translator.translate(it.repalce("_", " "), dest="it").text)
+                print(num, ")", translator.translate(it.replace("_", " "), dest="it").text)
             if num != 0:
                 print(f"Che sintomo in particolare? (0 -{num}): ", end="")
                 conf_inp = int(input(""))
