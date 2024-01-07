@@ -7,41 +7,39 @@ import logging
 from googletrans import Translator
 from sklearn import preprocessing
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_validate
+from sklearn.naive_bayes import BernoulliNB
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, _tree
 from sklearn.metrics import precision_score, classification_report
+from GUI import ChatApplication
+
 
 translator = Translator()
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
-
 # Carico i dataset di training e testing
 training_set = pd.read_csv('Data/Training.csv')
-
 
 # prendo le colonne del training set
 columns = training_set.columns
 # tolgo l'ultima colonna, la quale rappresenta la varaibile dipendente
 columns = columns[:-1]
 
-
 # estraggo features e creo la variabile dipendente
 x = training_set[columns]
 y = training_set['prognosis']
 
-
 # Poiché necessitiamo di valori numerici, mappiamo le stringhe in numeri con un encoder
 le = preprocessing.LabelEncoder()
-le.fit(y)           #funziona anche senza encoding, valutare se inserirlo
+le.fit(y)  # funziona anche senza encoding, valutare se inserirlo
 y = le.transform(y)
-
 
 # poiché ho i due set di training e testing, non vado a dividere, ma sfrutto i due dataset
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.33, random_state=42)
-
 
 # Creiamo ora il classificatore: per la natura del problema utilizziamo un classificatore DecisionTree
 classifier = DecisionTreeClassifier()
@@ -53,20 +51,42 @@ print(classification_report(y_test, y_pred))
 
 print(classifier.score(x_test, y_test))
 
-
 reduced_data = training_set.groupby(training_set['prognosis']).max()
 
-#convalida incrociata
-scores = cross_val_score(classifier, x_test, y_test, cv=5) # se usiamo training e testing set forniti (separati) non possiamo effettuare la cross validation
-print("Cross Validation: " + str(scores.mean()))
+# convalida incrociata
+# scores = cross_val_score(classifier, x_test, y_test, cv=5) # se usiamo training e testing set forniti (separati) non possiamo effettuare la cross validation
+score = cross_validate(classifier, x_test, y_test, cv=5)
+# print("Cross Validation: " + str(scores.mean()))
+print("Prestazioni Decision Tree")
+print("Fit time: " + str(score['fit_time'].mean()) + "\nScore Time: " + str(
+    score['score_time'].mean()) + "\nTest score: " + str(score['test_score'].mean()) + "\n")
 
+# modello Support Vector Machine
+model_svc = SVC()
+model_svc.fit(x_train, y_train)
+print("\nPrestazioni SCV: " + str(model_svc.score(x_test, y_test)))
+# prestazioni dell'SVC
+score_SVC = cross_validate(model_svc, x_test, y_test, cv=5)
+print(score_SVC['fit_time'].mean())
+print("Fit time: " + str(score_SVC['fit_time'].mean()) + "\nScore Time: " + str(
+    score_SVC['score_time'].mean()) + "\nTest score: " + str(score_SVC['test_score'].mean()) + "\n")
 
-#modello Support Vector Machine
-model = SVC()
-model.fit(x_train, y_train)
-print("Prestazioni SCV: ")
-print(model.score(x_test, y_test))
+y_pred_svc = model_svc.predict(x_test)
+print(classification_report(y_test, y_pred_svc))
 
+# modello naive bayes
+naive = BernoulliNB()
+naive.fit(x_train, y_train)
+probab = naive.predict_proba(x_test)
+nbscore = naive.score(x_test, y_test)
+print("\nNaive Bayes Probabilities: " + str(nbscore))
+score_nb = cross_validate(model_svc, x_test, y_test, cv=5)
+print(score_nb['fit_time'].mean())
+print("Fit time: " + str(score_nb['fit_time'].mean()) + "\nScore Time: " + str(
+    score_nb['score_time'].mean()) + "\nTest score: " + str(score_nb['test_score'].mean()) + "\n")
+
+y_pred_nb = naive.predict(x_test)
+print(classification_report(y_test, y_pred_nb))
 
 # Calcoliamo le varie importanze delle feature nel modello Decision Tree
 importances = classifier.feature_importances_
@@ -119,12 +139,13 @@ def getprecautionDict():
             logging.error("Si è verificato un errore imprevisto.")
 
 
-
 # Ottengo le informazioni del pazione
 def getInfo():
-    print("\nCiao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?\t")
-    name = input("")
-    print("Ciao, " + name + ".")
+    name = gui.insert_message(
+        "\nCiao!\nSono MediAI, un bot intelligente che ti aiuta a capire cosa potresti avere.\nCome ti "
+        "chiami?\t", "Medi-AI")
+
+    gui.insert_message("Ciao, " + name + ".", "Medi-AI")
 
 
 # Cerco un sintomo specifico all'interno di una lista di nomi di sintomi
@@ -140,15 +161,15 @@ def check_pattern(dis_list, inp):
         return 0, []
 
 
-#Effetuo una seconda previsione basata sui sintomi specifici forniti come input
+# Effetuo una seconda previsione basata sui sintomi specifici forniti come input
 def sec_predict(symptoms_exp):
     df = pd.read_csv('Data/Training.csv')
-    X = df.iloc[:,:-1]
+    X = df.iloc[:, :-1]
     y = df['prognosis']
 
-    X_train,X_test,y_train,y_test = train_test_split(X, y, test_size=0.3, random_state=20)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=20)
     rf_clf = DecisionTreeClassifier()
-    rf_clf.fit(X_train,y_train)
+    rf_clf.fit(X_train, y_train)
 
     symtompsDict = {symptom: index for index, symptom in enumerate(X.columns)}
 
@@ -196,11 +217,11 @@ def print_disease(node):
     return list(map(lambda x: x.strip(), list(disease)))
 
 
-#Funzione core del progetto
+# Funzione core del progetto
 def tree_to_code(tree, feature_names):
     global num
     tree_ = tree.tree_
-    feature_name =[
+    feature_name = [
         feature_names[i] if i != _tree.TREE_UNDEFINED else "undefined"
         for i in tree_.feature
     ]
@@ -233,6 +254,7 @@ def tree_to_code(tree, feature_names):
             break
         except:
             print("Inserisci un input valido.")
+
     def diagnose(node, depth):
         if tree_.feature[node] != _tree.TREE_UNDEFINED:
             name, threshold = feature_name[node], tree_.threshold[node]
@@ -247,7 +269,7 @@ def tree_to_code(tree, feature_names):
             symptoms_exp = []
             for sym in list(symtomps_given):
                 if sym != disease_input:
-                    print(translator.translate(sym.replace("_", " "), dest="it").text+"?", end=" ")
+                    print(translator.translate(sym.replace("_", " "), dest="it").text + "?", end=" ")
                     while True:
                         inp = input("")
                         if inp == "si" or inp == "no":
@@ -268,7 +290,7 @@ def tree_to_code(tree, feature_names):
                 diagnosis_text += f" o {second_prediction[0]}"
             print(translator.translate(diagnosis_text, dest="it").text)
 
-            print("\n"+translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
+            print("\n" + translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
             print("Prendi le seguenti precauzioni:")
             for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
                 precaution = translator.translate(precaution, dest="it").text
@@ -276,12 +298,14 @@ def tree_to_code(tree, feature_names):
 
             if present_disease[0] != second_prediction[0]:
                 prediction = translator.translate(second_prediction[0], src="it").text
-                print("\n"+translator.translate(descriptionDictionary[prediction], dest="it").text)
+                print("\n" + translator.translate(descriptionDictionary[prediction], dest="it").text)
 
             print("Prendi le seguenti precauzioni:")
-            for i, precaution in enumerate(precautionDictionary[translator.translate(second_prediction[0], src="it").text], 1):
+            for i, precaution in enumerate(
+                    precautionDictionary[translator.translate(second_prediction[0], src="it").text], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
+
     diagnose(0, 1)
 
 
@@ -289,5 +313,7 @@ if __name__ == '__main__':
     getSeverityDict()
     getDescription()
     getprecautionDict()
+    gui = ChatApplication()
     getInfo()
+    gui.run()
     tree_to_code(classifier, columns)
