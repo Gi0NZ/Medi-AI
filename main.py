@@ -141,12 +141,9 @@ def getprecautionDict():
 
 # Ottengo le informazioni del pazione
 def getInfo():
-    name = gui.insert_message(
+    gui.insert_message(
         "\nCiao!\nSono MediAI, un bot intelligente che ti aiuta a capire cosa potresti avere.\nCome ti "
         "chiami?\t", "Medi-AI")
-
-    gui.insert_message("Ciao, " + name + ".", "Medi-AI")
-
 
 # Cerco un sintomo specifico all'interno di una lista di nomi di sintomi
 def check_pattern(dis_list, inp):

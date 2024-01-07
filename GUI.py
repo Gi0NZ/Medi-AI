@@ -16,6 +16,7 @@ class ChatApplication:
     def __init__(self):
         self.window = Tk()
         self._setup_main_window()
+        self.nm = ""
 
     def run(self):
         self.window.mainloop()
@@ -23,7 +24,7 @@ class ChatApplication:
     def _setup_main_window(self):
         self.window.title("Chat")
         self.window.resizable(width=False, height=False)
-        self.window.configure(width=470, height=550, bg=BG_COLOR)
+        self.window.configure(width=480, height=550, bg=BG_COLOR)
 
         # head label
         head_label = Label(self.window, bg=BG_COLOR, fg=TEXT_COLOR, text="Medi-AI", font=FONT_BOLD, pady=10)
@@ -62,9 +63,17 @@ class ChatApplication:
                              command=lambda: self._on_enter_pressed(None))
         send_button.place(relx=0.77, rely=0.008, relheight=0.06, relwidth=0.22)
 
+    def _get_input_from_gui(self):
+        name = self.msg_entry.get()
+        self.insert_message("Il mio nome è " + name, name)
+        self.nm = name
+
     def _on_enter_pressed(self, event):
-        msg = self.msg_entry.get()
-        self.insert_message(msg, "You")
+        if self.nm == "":
+            self._get_input_from_gui()
+        else:
+            msg = self.msg_entry.get()
+            self.insert_message(msg, self.nm)
 
     def insert_message(self, msg, sender):
         if not msg:
@@ -74,7 +83,7 @@ class ChatApplication:
         self.text_widget.configure(state=NORMAL)
         self.text_widget.insert(END, msg1)
         self.text_widget.configure(cursor="arrow", state=DISABLED)
-    def function(self):
+        return ""
 
 
 
