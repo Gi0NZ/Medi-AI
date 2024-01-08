@@ -155,30 +155,6 @@ def check_pattern(dis_list, inp):
     else:
         return 0, []
 
-
-# Effetuo una seconda previsione basata sui sintomi specifici forniti come input
-def sec_predict(symptoms_exp):
-    #training_set = pd.read_csv('Data/Training.csv')
-    X = training_set.iloc[:, :-1]
-    y = training_set['prognosis']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=20)
-    rf_clf = DecisionTreeClassifier()
-    rf_clf.fit(X_train, y_train)
-
-    symtompsDict = {symptom: index for index, symptom in enumerate(X.columns)}
-
-    input_vector = np.zeros(len(symtompsDict))
-
-    for item in symptoms_exp:
-        if item in symtompsDict:
-            input_vector[[symtompsDict[item]]] = 1
-        else:
-            print("Sintomo non trovato nel dataset")
-
-    return rf_clf.predict([input_vector])
-
-
 def calc_condition(exp, days):
     severity_sum = 0
     for item in exp:
@@ -199,8 +175,6 @@ def getSeverityDict():
                 if len(row) >= 2:
                     _diction = {row[0]: int(row[1])}
                     severityDictionary.update(_diction)
-                else:
-                    logging.warning(f"Ignorato: {row} - La riga non contiene abbastanza elementi.")
         except Exception as e:
             logging.error(f"Si è verificato un errore imprevisto: {str(e)}")
 
@@ -222,7 +196,6 @@ def tree_to_code(tree, feature_names):
     ]
 
     chk_dis = ",".join(feature_names).split(",")
-    symtomps_present = []
 
     while True:
         print("Che sintomo stai riscontrando?\t")
@@ -275,33 +248,15 @@ def tree_to_code(tree, feature_names):
                             sym.replace(" ", "_")
                             symptoms_exp.append(sym)
 
-            #second_prediction = sec_predict(symptoms_exp)
 
             disease = translator.translate(present_disease[0], dest="it").text
             diagnosis_text = f"\nIn base alle mie ricerche potresti avere {disease}"
-            """
-            if present_disease[0] != second_prediction[0]:
-                second_prediction[0] = translator.translate(second_prediction[0], dest="it").text
-                diagnosis_text += f" o {second_prediction[0]}"
-            """
             print(translator.translate(diagnosis_text, dest="it").text)
-
             print("\n" + translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
             print("Prendi le seguenti precauzioni:")
             for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
-        """
-            if present_disease[0] != second_prediction[0]:
-                prediction = translator.translate(second_prediction[0], src="it").text
-                print("\n" + translator.translate(descriptionDictionary[prediction], dest="it").text)
-
-            print("Prendi le seguenti precauzioni:")
-            for i, precaution in enumerate(
-                    precautionDictionary[translator.translate(second_prediction[0], src="it").text], 1):
-                precaution = translator.translate(precaution, dest="it").text
-                print(f"{i}) {precaution}")
-        """
     diagnose(0, 1)
 
 
