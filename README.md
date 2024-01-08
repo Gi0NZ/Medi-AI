@@ -21,6 +21,7 @@ I passi per replicare il progetto sono:
 - Scaricare il progetto
 - Aprire il progetto con PyCharm o un qualunque IDE
 - Eseguire il file main.py
+  
 Verrà lanciato il terminale dell'IDE all'interno del quale sarà possibile utilizzare il chatbot.
 
 # Grazie per l'attenzione
