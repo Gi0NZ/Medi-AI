@@ -6,15 +6,12 @@ import pandas as pd
 import logging
 from googletrans import Translator
 from sklearn import preprocessing
-from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import cross_validate
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, _tree
-from sklearn.metrics import precision_score, classification_report
-from GUI import ChatApplication
-
+from sklearn.metrics import classification_report
 
 translator = Translator()
 
@@ -22,7 +19,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # Carico i dataset di training e testing
-training_set = pd.read_csv('Data/Training.csv')
+training_set1 = pd.read_csv('Data/Training.csv')
+training_set = training_set1.drop_duplicates()
 
 # prendo le colonne del training set
 columns = training_set.columns
@@ -141,9 +139,9 @@ def getprecautionDict():
 
 # Ottengo le informazioni del pazione
 def getInfo():
-    gui.insert_message(
-        "\nCiao!\nSono MediAI, un bot intelligente che ti aiuta a capire cosa potresti avere.\nCome ti "
-        "chiami?\t", "Medi-AI")
+    print("\nCiao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?\t")
+    name = input("")
+    print("Ciao, " + name + ".")
 
 # Cerco un sintomo specifico all'interno di una lista di nomi di sintomi
 def check_pattern(dis_list, inp):
@@ -160,9 +158,9 @@ def check_pattern(dis_list, inp):
 
 # Effetuo una seconda previsione basata sui sintomi specifici forniti come input
 def sec_predict(symptoms_exp):
-    df = pd.read_csv('Data/Training.csv')
-    X = df.iloc[:, :-1]
-    y = df['prognosis']
+    #training_set = pd.read_csv('Data/Training.csv')
+    X = training_set.iloc[:, :-1]
+    y = training_set['prognosis']
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=20)
     rf_clf = DecisionTreeClassifier()
@@ -277,14 +275,15 @@ def tree_to_code(tree, feature_names):
                             sym.replace(" ", "_")
                             symptoms_exp.append(sym)
 
-            second_prediction = sec_predict(symptoms_exp)
+            #second_prediction = sec_predict(symptoms_exp)
 
             disease = translator.translate(present_disease[0], dest="it").text
             diagnosis_text = f"\nIn base alle mie ricerche potresti avere {disease}"
-
+            """
             if present_disease[0] != second_prediction[0]:
                 second_prediction[0] = translator.translate(second_prediction[0], dest="it").text
                 diagnosis_text += f" o {second_prediction[0]}"
+            """
             print(translator.translate(diagnosis_text, dest="it").text)
 
             print("\n" + translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
@@ -292,7 +291,7 @@ def tree_to_code(tree, feature_names):
             for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
-
+        """
             if present_disease[0] != second_prediction[0]:
                 prediction = translator.translate(second_prediction[0], src="it").text
                 print("\n" + translator.translate(descriptionDictionary[prediction], dest="it").text)
@@ -302,7 +301,7 @@ def tree_to_code(tree, feature_names):
                     precautionDictionary[translator.translate(second_prediction[0], src="it").text], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
-
+        """
     diagnose(0, 1)
 
 
@@ -310,7 +309,5 @@ if __name__ == '__main__':
     getSeverityDict()
     getDescription()
     getprecautionDict()
-    gui = ChatApplication()
     getInfo()
-    gui.run()
     tree_to_code(classifier, columns)
