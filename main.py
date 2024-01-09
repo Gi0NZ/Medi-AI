@@ -45,9 +45,9 @@ classifier = classifier.fit(x_train, y_train)
 
 y_pred = classifier.predict(x_test)
 
-#print(classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 
-#print(classifier.score(x_test, y_test))
+print(classifier.score(x_test, y_test))
 
 reduced_data = training_set.groupby(training_set['prognosis']).max()
 
@@ -55,33 +55,33 @@ reduced_data = training_set.groupby(training_set['prognosis']).max()
 # scores = cross_val_score(classifier, x_test, y_test, cv=5) # se usiamo training e testing set forniti (separati) non possiamo effettuare la cross validation
 score = cross_validate(classifier, x_test, y_test, cv=5)
 # print("Cross Validation: " + str(scores.mean()))
-#print("Prestazioni Decision Tree")
-#print("Fit time: " + str(score['fit_time'].mean()) + "\nScore Time: " + str(score['score_time'].mean()) + "\nTest score: " + str(score['test_score'].mean()) + "\n")
+print("Prestazioni Decision Tree")
+print("Fit time: " + str(score['fit_time'].mean()) + "\nScore Time: " + str(score['score_time'].mean()) + "\nTest score: " + str(score['test_score'].mean()) + "\n")
 
 # modello Support Vector Machine
 model_svc = SVC()
 model_svc.fit(x_train, y_train)
-#print("\nPrestazioni SCV: " + str(model_svc.score(x_test, y_test)))
+print("\nPrestazioni SCV: " + str(model_svc.score(x_test, y_test)))
 # prestazioni dell'SVC
 score_SVC = cross_validate(model_svc, x_test, y_test, cv=5)
-#print(score_SVC['fit_time'].mean())
-#print("Fit time: " + str(score_SVC['fit_time'].mean()) + "\nScore Time: " + str(score_SVC['score_time'].mean()) + "\nTest score: " + str(score_SVC['test_score'].mean()) + "\n")
+print(score_SVC['fit_time'].mean())
+print("Fit time: " + str(score_SVC['fit_time'].mean()) + "\nScore Time: " + str(score_SVC['score_time'].mean()) + "\nTest score: " + str(score_SVC['test_score'].mean()) + "\n")
 
 y_pred_svc = model_svc.predict(x_test)
-#print(classification_report(y_test, y_pred_svc))
+print(classification_report(y_test, y_pred_svc))
 
 # modello naive bayes
 naive = BernoulliNB()
 naive.fit(x_train, y_train)
 probab = naive.predict_proba(x_test)
 nbscore = naive.score(x_test, y_test)
-#print("\nNaive Bayes Probabilities: " + str(nbscore))
+print("\nNaive Bayes Probabilities: " + str(nbscore))
 score_nb = cross_validate(model_svc, x_test, y_test, cv=5)
-#print(score_nb['fit_time'].mean())
-#print("Fit time: " + str(score_nb['fit_time'].mean()) + "\nScore Time: " + str(score_nb['score_time'].mean()) + "\nTest score: " + str(score_nb['test_score'].mean()) + "\n")
+print(score_nb['fit_time'].mean())
+print("Fit time: " + str(score_nb['fit_time'].mean()) + "\nScore Time: " + str(score_nb['score_time'].mean()) + "\nTest score: " + str(score_nb['test_score'].mean()) + "\n")
 
 y_pred_nb = naive.predict(x_test)
-#print(classification_report(y_test, y_pred_nb))
+print(classification_report(y_test, y_pred_nb))
 
 # Calcoliamo le varie importanze delle feature nel modello Decision Tree
 importances = classifier.feature_importances_
