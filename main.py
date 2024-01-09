@@ -64,7 +64,7 @@ naive.fit(x_train, y_train)
 probab = naive.predict_proba(x_test)
 nbscore = naive.score(x_test, y_test)
 print("\nNaive Bayes Probabilities: " + str(nbscore))
-score_nb = cross_validate(model_svc, x_test, y_test, cv=5)
+score_nb = cross_validate(naive, x_test, y_test, cv=5)
 print(score_nb['fit_time'].mean())
 print("Fit time: " + str(score_nb['fit_time'].mean()) + "\nScore Time: " + str(score_nb['score_time'].mean()) + "\nTest score: " + str(score_nb['test_score'].mean()) + "\n")
 
