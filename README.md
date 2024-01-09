@@ -14,7 +14,7 @@ La repository è strutturata in questo modo:
 Requisiti:
 - pandas
 - scikit-learn
-- pyttsx3
+- numpy
 - googletrans v.3.1.0a0
 
 I passi per replicare il progetto sono:
