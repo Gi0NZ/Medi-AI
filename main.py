@@ -58,18 +58,6 @@ score = cross_validate(classifier, x_test, y_test, cv=5)
 print("Prestazioni Decision Tree")
 print("Fit time: " + str(score['fit_time'].mean()) + "\nScore Time: " + str(score['score_time'].mean()) + "\nTest score: " + str(score['test_score'].mean()) + "\n")
 
-# modello Support Vector Machine
-model_svc = SVC()
-model_svc.fit(x_train, y_train)
-print("\nPrestazioni SCV: " + str(model_svc.score(x_test, y_test)))
-# prestazioni dell'SVC
-score_SVC = cross_validate(model_svc, x_test, y_test, cv=5)
-print(score_SVC['fit_time'].mean())
-print("Fit time: " + str(score_SVC['fit_time'].mean()) + "\nScore Time: " + str(score_SVC['score_time'].mean()) + "\nTest score: " + str(score_SVC['test_score'].mean()) + "\n")
-
-y_pred_svc = model_svc.predict(x_test)
-print(classification_report(y_test, y_pred_svc))
-
 # modello naive bayes
 naive = BernoulliNB()
 naive.fit(x_train, y_train)
