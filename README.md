@@ -5,7 +5,7 @@ Implementare un chatbot che sia in grado di predire una malattia sulla base dei 
 
 # Struttura della repo
 La repository è strutturata in questo modo:
-- La cartella Data contiene il dataset principale oltre che il dataset utilizzato per addestrare e trainare il modello
+- La cartella Data contiene il dataset principale e il dataset utilizzato per addestrare e trainare il modello
 - La cartella MasterData contiene i dataset riguardanti la descrizione delle malattie, le precauzioni relative e la gravità dei sintomi
 - La cartella Documents contiene la documentazione, presentazione e demo del progetto
 - Il file main.py è l'implemetazione del modello
