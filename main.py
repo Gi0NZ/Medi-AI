@@ -139,9 +139,9 @@ def getprecautionDict():
 
 # Ottengo le informazioni del pazione
 def getInfo():
-    print("\nCiao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?\t")
-    name = input("")
-    print("Ciao, " + name + ".")
+    print("Medi-AI: Ciao!\nSono MediAI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?")
+    name = input("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: ")
+    print("Medi-AI: Ciao, " + name + ".")
 
 # Cerco un sintomo specifico all'interno di una lista di nomi di sintomi
 def check_pattern(dis_list, inp):
@@ -198,30 +198,30 @@ def tree_to_code(tree, feature_names):
     chk_dis = ",".join(feature_names).split(",")
 
     while True:
-        print("Che sintomo stai riscontrando?\t")
-        disease_input = input("")
+        print("Medi-Ai: Che sintomo stai riscontrando?", end="\n")
+        disease_input = input("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: ")
         disease_input.replace(" ", "_")
         conf, cnf_dis = check_pattern(chk_dis, translator.translate(disease_input, src="it").text)
         if conf == 1:
-            print("Ho trovato i seguenti sintomi in base alla tua risposta: ")
+            print("Medi-AI: Ho trovato i seguenti sintomi in base alla tua risposta: ")
             for num, it in enumerate(cnf_dis):
                 print(num, ")", translator.translate(it.replace("_", " "), dest="it").text)
             if num != 0:
-                print(f"Che sintomo in particolare? (0 -{num}): ", end="")
-                conf_inp = int(input(""))
+                print(f"Medi-AI: Che sintomo in particolare? (0 -{num}): ", end=" ")
+                conf_inp = int(input("\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: "))
             else:
                 conf_inp = 0
             disease_input = cnf_dis[conf_inp]
             break
         else:
-            print("Inserisci un sintomo valido.")
+            print("Medi-AI: Inserisci un sintomo valido.")
 
     while True:
         try:
-            num_days = int(input("Da quanti giorni? "))
+            num_days = int(input("Medi-AI: Da quanti giorni?\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: "))
             break
         except:
-            print("Inserisci un input valido.")
+            print("Medi-AI: Inserisci un input valido.")
 
     def diagnose(node, depth):
         if tree_.feature[node] != _tree.TREE_UNDEFINED:
@@ -233,27 +233,39 @@ def tree_to_code(tree, feature_names):
         else:
             present_disease = print_disease(tree_.value[node])
             symtomps_given = reduced_data.columns[reduced_data.loc[present_disease].values[0].nonzero()]
-            print("Stai sperimentando qualche sintomo tra questi?")
+            print("Medi-AI: Stai sperimentando qualche sintomo tra questi?")
             symptoms_exp = []
             for sym in list(symtomps_given):
                 if sym != disease_input:
-                    print(translator.translate(sym.replace("_", " "), dest="it").text + "?", end=" ")
+                    print("Medi-AI: " +translator.translate(sym.replace("_", " "), dest="it").text + "?", end="\n")
                     while True:
-                        inp = input("")
+                        inp = input("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: ")
                         if inp == "si" or inp == "no":
                             break
                         else:
-                            print("Dai una risposta valida, i.e. (si/no): ", end="")
+                            print("Medi-AI: Dai una risposta valida, i.e. (si/no): ")
                         if inp == "si":
                             sym.replace(" ", "_")
                             symptoms_exp.append(sym)
 
 
             disease = translator.translate(present_disease[0], dest="it").text
-            diagnosis_text = f"\nIn base alle mie ricerche potresti avere {disease}"
+            diagnosis_text = f"\nMedi-AI: In base alle mie ricerche potresti avere {disease}."
             print(translator.translate(diagnosis_text, dest="it").text)
-            print("\n" + translator.translate(descriptionDictionary[present_disease[0]], dest="it").text)
-            print("Prendi le seguenti precauzioni:")
+            description = translator.translate(descriptionDictionary[present_disease[0]], dest="it").text
+            x = 0
+            while x < len(description):
+                print(description[x], end="")
+                if x % 70 == 0 and x != 0:
+                    x += 1
+                    while x< len(description):
+                        print(description[x], end="")
+                        if(description[x]==" "):
+                            print()
+                            break
+                        x += 1
+                x += 1
+            print("\nMedi-AI: Prendi le seguenti precauzioni:")
             for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
