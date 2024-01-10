@@ -9,9 +9,7 @@ from sklearn import preprocessing
 from sklearn.model_selection import cross_validate
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier, _tree
-from sklearn.metrics import classification_report
 
 translator = Translator()
 
@@ -45,9 +43,9 @@ classifier = classifier.fit(x_train, y_train)
 
 y_pred = classifier.predict(x_test)
 
-print(classification_report(y_test, y_pred))
+#print(classification_report(y_test, y_pred))
 
-print(classifier.score(x_test, y_test))
+#print(classifier.score(x_test, y_test))
 
 reduced_data = training_set.groupby(training_set['prognosis']).max()
 
@@ -55,21 +53,21 @@ reduced_data = training_set.groupby(training_set['prognosis']).max()
 # scores = cross_val_score(classifier, x_test, y_test, cv=5) # se usiamo training e testing set forniti (separati) non possiamo effettuare la cross validation
 score = cross_validate(classifier, x_test, y_test, cv=5)
 # print("Cross Validation: " + str(scores.mean()))
-print("Prestazioni Decision Tree")
-print("Fit time: " + str(score['fit_time'].mean()) + "\nScore Time: " + str(score['score_time'].mean()) + "\nTest score: " + str(score['test_score'].mean()) + "\n")
+#print("Prestazioni Decision Tree")
+#print("Fit time: " + str(score['fit_time'].mean()) + "\nScore Time: " + str(score['score_time'].mean()) + "\nTest score: " + str(score['test_score'].mean()) + "\n")
 
 # modello naive bayes
 naive = BernoulliNB()
 naive.fit(x_train, y_train)
 probab = naive.predict_proba(x_test)
 nbscore = naive.score(x_test, y_test)
-print("\nNaive Bayes Probabilities: " + str(nbscore))
+#print("\nNaive Bayes Probabilities: " + str(nbscore))
 score_nb = cross_validate(naive, x_test, y_test, cv=5)
-print(score_nb['fit_time'].mean())
-print("Fit time: " + str(score_nb['fit_time'].mean()) + "\nScore Time: " + str(score_nb['score_time'].mean()) + "\nTest score: " + str(score_nb['test_score'].mean()) + "\n")
+#print(score_nb['fit_time'].mean())
+#print("Fit time: " + str(score_nb['fit_time'].mean()) + "\nScore Time: " + str(score_nb['score_time'].mean()) + "\nTest score: " + str(score_nb['test_score'].mean()) + "\n")
 
 y_pred_nb = naive.predict(x_test)
-print(classification_report(y_test, y_pred_nb))
+#print(classification_report(y_test, y_pred_nb))
 
 # Calcoliamo le varie importanze delle feature nel modello Decision Tree
 importances = classifier.feature_importances_
@@ -101,7 +99,6 @@ def getDescription():
             logging.error("Si è verificato un errore imprevisto.")
 
 
-# def getSeverity():
 
 """
 Ottengo le informazioni riguardo le precauzioni da prendere per le malattie trovate dal file symptom_precaution.csv e popolo
@@ -127,6 +124,7 @@ def getInfo():
     print("Medi-AI: Ciao!\nSono Medi-AI, un bot intelligente che aiuta per capire cosa potresti avere.\nCome ti chiami?")
     name = input("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: ")
     print("Medi-AI: Ciao, " + name + ".")
+
 
 # Cerco un sintomo specifico all'interno di una lista di nomi di sintomi
 def check_pattern(dis_list, inp):
@@ -170,6 +168,18 @@ def print_disease(node):
     disease = le.inverse_transform(val[0])
     return list(map(lambda x: x.strip(), list(disease)))
 
+def sec_predict(symptoms_exp):
+    symtompsDict = {symptom: index for index, symptom in enumerate(columns)}
+
+    input_vector = np.zeros(len(symtompsDict))
+
+    for item in symptoms_exp:
+        if item in symtompsDict:
+            input_vector[[symtompsDict[item]]] = 1
+        else:
+            print("Sintomo non trovato nel dataset")
+
+    return classifier.predict([input_vector])
 
 # Funzione core del progetto
 def tree_to_code(tree, feature_names):
@@ -212,7 +222,6 @@ def tree_to_code(tree, feature_names):
         if tree_.feature[node] != _tree.TREE_UNDEFINED:
             name, threshold = feature_name[node], tree_.threshold[node]
             val = 1 if name == disease_input else 0
-
             next_node = tree_.children_left[node] if val <= threshold else tree_.children_right[node]
             diagnose(next_node, depth + 1)
         else:
@@ -226,18 +235,20 @@ def tree_to_code(tree, feature_names):
                     while True:
                         inp = input("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tYou: ")
                         if inp == "si" or inp == "no":
+                            if inp == "si":
+                                sym.replace(" ", "_")
+                                symptoms_exp.append(sym)
                             break
                         else:
                             print("Medi-AI: Dai una risposta valida, i.e. (si/no): ")
-                        if inp == "si":
-                            sym.replace(" ", "_")
-                            symptoms_exp.append(sym)
+            symptoms_exp.append(disease_input)
 
 
-            disease = translator.translate(present_disease[0], dest="it").text
-            diagnosis_text = f"\nMedi-AI: In base alle mie ricerche potresti avere {disease}."
+            disease = le.inverse_transform(sec_predict(symptoms_exp))
+            disease_trad = translator.translate(disease[0],dest="it").text
+            diagnosis_text = f"\nMedi-AI: In base alle mie ricerche potresti avere {disease_trad}."
             print(translator.translate(diagnosis_text, dest="it").text)
-            description = translator.translate(descriptionDictionary[present_disease[0]], dest="it").text
+            description = translator.translate(descriptionDictionary[disease[0]], dest="it").text
             x = 0
             while x < len(description):
                 print(description[x], end="")
@@ -251,7 +262,7 @@ def tree_to_code(tree, feature_names):
                         x += 1
                 x += 1
             print("\nMedi-AI: Prendi le seguenti precauzioni:")
-            for i, precaution in enumerate(precautionDictionary[present_disease[0]], 1):
+            for i, precaution in enumerate(precautionDictionary[disease[0]], 1):
                 precaution = translator.translate(precaution, dest="it").text
                 print(f"{i}) {precaution}")
     diagnose(0, 1)
